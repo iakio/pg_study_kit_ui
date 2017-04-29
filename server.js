@@ -5,6 +5,9 @@ const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer);
 const pg = require('pg');
 const path = require('path');
+const Pool = require('pg').Pool;
+const pool = new Pool({});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -25,20 +28,11 @@ app.get('/relations/:relname', (req, res) => {
 });
 
 app.post('/query', (req, res) => {
-    const client = new pg.Client({
-        // database: 'pagila'
-    });
     if (!req.body.query) {
         res.sendStatus(500);
         return;
     }
-    client.connect();
-    client.query(req.body.query, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.sendStatus(500);
-            return;
-        }
+    pool.query(req.body.query).then(result => {
         res.send("OK");
     });
 });
