@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const httpServer = require('http').createServer(app);
+const io = require('socket.io')(httpServer);
 const pg = require('pg');
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
@@ -60,6 +60,10 @@ process.stdin.on('data', function (data) {
     }
 });
 
-http.listen(3000, function () {
-    console.log('listening on *:3000');
-});
+if (process.env.NODE_ENV != 'test') {
+    httpServer.listen(3000, function () {
+        console.log('listening on *:3000');
+    });
+}
+
+module.exports = httpServer;
