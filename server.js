@@ -12,17 +12,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.get('/relations/:relname', (req, res) => {
-    const client = new pg.Client({
-        // database: 'pagila'
-    });
-    client.connect();
-    client.on('drain', client.end.bind(client));
-    client.query(`select * from pg_class where relname = $1`, [req.params.relname], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.sendStatus(500);
-            return;
-        }
+    pool.query(`select * from pg_class where relname = $1`, [req.params.relname])
+    .then(result => {
         res.send(result.rows);
     });
 });
