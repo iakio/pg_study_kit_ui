@@ -41,29 +41,37 @@ app.post('/query', (req, res) => {
     }
 });
 
-let fragment = '';
-process.stdin.on('data', function (data) {
-    if (data !== null) {
-        let lines = data.toString('utf-8').split(/\n/);
-        lines[0] = fragment + lines[0];
-        fragment = lines.pop();
-        lines.forEach(function (line) {
-            if (line) {
-                try {
-                    io.emit('message', JSON.parse(line));
-                }
-                catch (ex) {
-                    console.error(ex);
-                }
-            }
-        });
-    }
-});
 
-if (process.env.NODE_ENV != 'test') {
+function createIOServer(inputStream, io) {
+    let fragment = '';
+    inputStream.on('data',  data => {
+        if (data !== null) {
+            let lines = data.toString('utf-8').split(/\n/);
+            lines[0] = fragment + lines[0];
+            fragment = lines.pop();
+            lines.forEach(function (line) {
+                if (line) {
+                    try {
+                        io.emit('message', JSON.parse(line));
+                    }
+                    catch (ex) {
+                        console.error(ex);
+                    }
+                }
+            });
+        }
+    });
+}
+
+if (!module.parent) {
+    createIOServer(process.stdin, io);
+
     httpServer.listen(3000, function () {
         console.log('listening on *:3000');
     });
 }
 
-module.exports = httpServer;
+module.exports = {
+    http: httpServer,
+    createIOServer: createIOServer
+};
