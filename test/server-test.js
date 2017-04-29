@@ -1,5 +1,6 @@
 const request = require('supertest');
 const server = require('../server');
+const expect = require('chai').expect;
 
 describe('http server', () => {
     it('respond to /', done => {
@@ -25,5 +26,16 @@ describe('http server', () => {
                 .send({query: 'invalid query'})
                 .expect(500, done);
         });
-    })
+    });
+
+    describe('respond to /relations:relname', () => {
+        it('returns information of the relation', () => {
+            return request(server.http)
+                .get('/relations/pg_user')
+                .expect(200)
+                .then(res => {
+                    expect(res.body[0].relname).to.equal("pg_user");
+                });
+        });
+    });
 });
