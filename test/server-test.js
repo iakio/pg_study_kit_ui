@@ -7,4 +7,17 @@ describe('http server', () => {
             .get('/')
             .expect(200, done);
     });
+    describe('respond to /query', () => {
+        it('success if query is passed', done => {
+            request(server.http)
+                .post('/query')
+                .send({query: 'select 1'})
+                .expect(200, done);
+        });
+        it('fails if no query is passed', done => {
+            request(server.http)
+                .post('/query')
+                .expect(500, done);
+        });
+    })
 });

@@ -28,17 +28,19 @@ app.post('/query', (req, res) => {
     const client = new pg.Client({
         // database: 'pagila'
     });
-    if (req.body.query) {
-        client.connect();
-        client.query(req.body.query, function (err, result) {
-            if (err) {
-                console.log(err);
-                res.sendStatus(500);
-                return;
-            }
-            res.send("OK");
-        });
+    if (!req.body.query) {
+        res.sendStatus(500);
+        return;
     }
+    client.connect();
+    client.query(req.body.query, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+        }
+        res.send("OK");
+    });
 });
 
 
