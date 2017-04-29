@@ -34,6 +34,10 @@ app.post('/query', (req, res) => {
     }
     pool.query(req.body.query).then(result => {
         res.send("OK");
+    })
+    .catch(err => {
+        console.error(err);
+        res.sendStatus(500);
     });
 });
 

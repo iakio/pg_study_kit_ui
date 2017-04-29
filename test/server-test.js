@@ -19,5 +19,11 @@ describe('http server', () => {
                 .post('/query')
                 .expect(500, done);
         });
+        it('fails if invalid query is given', done => {
+            request(server.http)
+                .post('/query')
+                .send({query: 'invalid query'})
+                .expect(500, done);
+        });
     })
 });
