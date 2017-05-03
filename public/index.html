@@ -1,34 +1,30 @@
 <!doctype html>
 <html>
-  <head>
-    <title>PostgreSQL IO</title>
-    <style>
-      canvas {
-        border: 2px solid black;
-      }
-      div h3 {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app">
-      <div v-for="rel in relations">
-        <rel-canvas
-           :width="rel.width"
-           :height="rel.height"
-           :relname="rel.relname"
-           :relfilenode="rel.relfilenode"
-           :relpages="rel.relpages"
-           ></rel-canvas>
-      </div>
-      <form>
-        <textarea @keyup.ctrl.enter="onkeyup"></textarea>
-      </form>
+
+<head>
+  <title>PostgreSQL IO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.1/css/bulma.css">
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app" class="section">
+    <div v-for="rel in relations" class="container">
+      <rel-canvas :width="rel.width" :height="rel.height" :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
     </div>
-    <script src="https://unpkg.com/vue"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
-  </body>
+    <div class="container">
+      <h3>Query</h3>
+      <input type="range" min="0" max="5">
+      <textarea @keyup.ctrl.enter="onkeyup" class="textarea"></textarea>
+    </div>
+  </div>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+
 </html>
