@@ -3,7 +3,6 @@ const app = express();
 const bodyParser = require('body-parser');
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer);
-const pg = require('pg');
 const path = require('path');
 const Pool = require('pg').Pool;
 const pool = new Pool({});
@@ -15,7 +14,8 @@ app.get('/relations/:relname', (req, res) => {
     pool.query(`select * from pg_class where relname = $1`, [req.params.relname])
     .then(result => {
         res.send(result.rows);
-    });
+    })
+    .catch(err => res.status(500).send({error: err.message}));
 });
 
 app.post('/query', (req, res) => {
@@ -24,12 +24,9 @@ app.post('/query', (req, res) => {
         return;
     }
     pool.query(req.body.query).then(result => {
-        res.send("OK");
+        res.send(result);
     })
-    .catch(err => {
-        console.error(err);
-        res.sendStatus(500);
-    });
+    .catch(err => res.status(500).send({error: err.message}));
 });
 
 
