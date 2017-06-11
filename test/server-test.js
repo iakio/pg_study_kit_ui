@@ -3,6 +3,21 @@ const server = require('../server');
 const expect = require('chai').expect;
 
 describe('http server', () => {
+    describe('check the Pg sleep time', () => {
+        it('should be zero', done => {
+            request(server.http)
+                .post('/query')
+                .send({query: 'show pgstudy_usleep'})
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        done(err);
+                    }
+                    expect(res.body.rows[0].pgstudy_usleep).to.equal("0");
+                    done();
+                });
+        })
+    });
     it('respond to /', done => {
         request(server.http)
             .get('/')
