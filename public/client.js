@@ -1,6 +1,6 @@
 const socket = io();
 const WIDTH = 640;
-const SCALE = 16;
+const SCALE = 8;
 
 Vue.component('rel-canvas', {
     template: `
@@ -10,8 +10,6 @@ Vue.component('rel-canvas', {
     </div>
     `,
     props: [
-        "width",
-        "height",
         "relname",
         "relfilenode",
         "relpages"
@@ -24,6 +22,9 @@ Vue.component('rel-canvas', {
         this.ctx = this.$refs.canvas.getContext("2d");
     },
     computed: {
+        width() {
+            return WIDTH;
+        },
         height() {
             return Math.ceil(this.maxpages / (WIDTH / SCALE)) * SCALE;
         }
@@ -52,7 +53,9 @@ Vue.component('rel-canvas', {
 });
 
 const data = {
-    relations: []
+    relations: [],
+    all: [],
+    newRel: "",
 };
 
 const app = new Vue({
@@ -60,7 +63,25 @@ const app = new Vue({
     data,
     methods: {
         onkeyup: function (ev) {
-            sendQuery(ev.target.value);
+            sendQuery(ev.target.value)
+                .then(res => {
+                    if (res.ok) {
+                        ev.target.value = '';
+                    }
+                });
+        },
+        addRel: function (ev) {
+            register(this.newRel).then(res => {
+                res.json().then(relations => {
+                    console.log(relations);
+                    data.relations.push({
+                        relname: relations[0].relname,
+                        relpages: relations[0].relpages,
+                        relfilenode: relations[0].relfilenode
+                    });
+                });
+            });
+            this.newRel = '';
         }
     }
 });
@@ -82,8 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         values.forEach(res => {
             res.json().then(relations => {
                 data.relations.push({
-                    width: WIDTH,
-                    height: 100,
                     relname: relations[0].relname,
                     relpages: relations[0].relpages,
                     relfilenode: relations[0].relfilenode

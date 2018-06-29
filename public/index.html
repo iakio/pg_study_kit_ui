@@ -14,7 +14,7 @@
 <body>
   <div id="app" class="section">
     <div v-for="rel in relations" class="container">
-      <rel-canvas :width="rel.width" :height="rel.height" :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
+      <rel-canvas :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
     </div>
     <div class="container">
       <h3>Query</h3>
