@@ -54,27 +54,47 @@ Vue.component('rel-canvas', {
 })
 
 const data = {
-  relations: [],
-  all: [],
-  newRel: ''
+  relations: []
 }
 
 const app = new Vue({
   el: '#app',
-  data,
+  data: {
+    relations: data.relations,
+    histories: [],
+    historyIndex: 0,
+    queryText: ''
+  },
   methods: {
-    onkeyup (ev) {
-      sendQuery(ev.target.value)
+    onQuery () {
+      sendQuery(this.queryText)
         .then(res => {
           if (res.ok) {
-            ev.target.value = ''
+            this.histories.push(this.queryText)
+            this.historyIndex = this.histories.length
+            this.queryText = ''
           }
         })
+    },
+    onHistoryUp () {
+      if (this.histories) {
+        this.queryText = this.histories[this.historyIndex--]
+        if (this.historyIndex < 0) {
+          this.historyIndex = this.histories.length
+        }
+      }
+    },
+    onHistoryDown () {
+      if (this.histories) {
+        this.queryText = this.histories[this.historyIndex++]
+        if (this.historyIndex > this.histories.length) {
+          this.historyIndex = 0
+        }
+      }
     },
     addRel (ev) {
       register(this.newRel).then(res => {
         res.json().then(relations => {
-          console.log(relations)
           data.relations.push({
             relname: relations[0].relname,
             relpages: relations[0].relpages,
@@ -82,7 +102,6 @@ const app = new Vue({
           })
         })
       })
-      this.newRel = ''
     }
   }
 })

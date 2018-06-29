@@ -19,7 +19,10 @@
     <div class="container">
       <h3>Query</h3>
       <input type="range" min="0" max="5">
-      <textarea @keyup.ctrl.enter="onkeyup" class="textarea"></textarea>
+      <textarea @keyup.ctrl.enter="onQuery"
+          @keyup.ctrl.up="onHistoryUp" 
+          @keyup.ctrl.down="onHistoryDown" 
+          v-model="queryText" class="textarea"></textarea>
     </div>
   </div>
   <script src="https://unpkg.com/vue"></script>
