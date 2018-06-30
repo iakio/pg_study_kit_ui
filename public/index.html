@@ -17,6 +17,14 @@
       <rel-canvas :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
     </div>
     <div class="container">
+      <div class="select">
+        <select v-model.number="scenarioIndex">
+          <option v-for="(s, index) in scenarios" :value="index">{{ s.name }}</option>
+        </select>
+      </div>
+      {{ scenarioName }}
+    </div>
+    <div class="container">
       <h3>Query</h3>
       <input type="range" min="0" max="5">
       <textarea @keyup.ctrl.enter="onQuery"

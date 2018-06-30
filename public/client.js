@@ -57,15 +57,56 @@ const data = {
   relations: []
 }
 
+class SeqScanVsIndexScan {
+  constructor (ctx) {
+    this.ctx = ctx
+    this.name = 'Seq Scan vs Index Scan'
+  }
+
+  init () {
+    const promises = [
+      register('pgbench_accounts'),
+      register('pgbench_accounts_pkey')
+    ]
+    Promise.all(promises).then(values => {
+      values.forEach(res => {
+        res.json().then(relations => {
+          data.relations.push({
+            relname: relations[0].relname,
+            relpages: relations[0].relpages,
+            relfilenode: relations[0].relfilenode
+          })
+        })
+      })
+    })
+  }
+  setUp () {
+    sendQuery('select * from pgbench_accounts')
+  }
+}
+
 const app = new Vue({
   el: '#app',
   data: {
     relations: data.relations,
     histories: [],
     historyIndex: 0,
-    queryText: ''
+    queryText: '',
+    scenarios: [
+      SeqScanVsIndexScan
+    ],
+    scenarioIndex: 0
+  },
+  computed: {
+    scenarioName () {
+      const scenario = new this.scenarios[this.scenarioIndex]()
+      scenario.init()
+      scenario.setUp()
+      return scenario.name
+    }
   },
   methods: {
+    // ctrl + enter
     onQuery () {
       sendQuery(this.queryText)
         .then(res => {
@@ -76,6 +117,7 @@ const app = new Vue({
           }
         })
     },
+    // ctrl + up
     onHistoryUp () {
       if (this.histories) {
         this.queryText = this.histories[this.historyIndex--]
@@ -84,6 +126,7 @@ const app = new Vue({
         }
       }
     },
+    // ctrl + down
     onHistoryDown () {
       if (this.histories) {
         this.queryText = this.histories[this.historyIndex++]
@@ -92,7 +135,7 @@ const app = new Vue({
         }
       }
     },
-    addRel (ev) {
+    addRel () {
       register(this.newRel).then(res => {
         res.json().then(relations => {
           data.relations.push({
@@ -109,28 +152,6 @@ const app = new Vue({
 function register (relname) {
   return fetch('/relations/' + relname)
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  let promises = [
-    register('pgbench_accounts'),
-    register('pgbench_accounts_pkey')
-    // register('t1'),
-    // register('t1_pkey'),
-    // register('t2'),
-    // register('t2_pkey'),
-  ]
-  Promise.all(promises).then(values => {
-    values.forEach(res => {
-      res.json().then(relations => {
-        data.relations.push({
-          relname: relations[0].relname,
-          relpages: relations[0].relpages,
-          relfilenode: relations[0].relfilenode
-        })
-      })
-    })
-  })
-})
 
 setInterval(() => {
   app.$children.forEach(el => {
