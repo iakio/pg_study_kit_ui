@@ -57,18 +57,13 @@ const data = {
   relations: []
 }
 
-class SeqScanVsIndexScan {
-  constructor (ctx) {
-    this.ctx = ctx
-    this.name = 'Seq Scan vs Index Scan'
-  }
-
-  init () {
-    const promises = [
-      register('pgbench_accounts'),
-      register('pgbench_accounts_pkey')
-    ]
-    Promise.all(promises).then(values => {
+class Scenario {
+  async init () {
+    this.initQueries.forEach(async function (q) {
+      console.log(await sendQuery(q))
+    })
+    const promises = this.relations.map(r => register(r))
+    await Promise.all(promises).then(values => {
       values.forEach(res => {
         res.json().then(relations => {
           data.relations.push({
@@ -80,8 +75,31 @@ class SeqScanVsIndexScan {
       })
     })
   }
+
+  async sendQueryAsync (query) {
+    await sendQuery(query)
+  }
+
   setUp () {
-    sendQuery('select * from pgbench_accounts')
+    this.setUpQueries.forEach(q => this.sendQueryAsync(q))
+  }
+}
+
+class Scenario1 extends Scenario {
+  constructor () {
+    super()
+    this.name = 'Seq Scan vs Index Scan'
+    this.relations = [
+      't1',
+      't1_pkey'
+    ]
+    this.initQueries = [
+      'drop table if exists t1',
+      'create table t1(i1 int primary key, i2 int)'
+    ]
+    this.setUpQueries = [
+      'insert into t1(i1, i2) select i, i from generate_series(1, 1000) as s(i)'
+    ]
   }
 }
 
@@ -93,15 +111,17 @@ const app = new Vue({
     historyIndex: 0,
     queryText: '',
     scenarios: [
-      SeqScanVsIndexScan
+      Scenario1
     ],
     scenarioIndex: 0
   },
   computed: {
-    scenarioName () {
+    async scenarioName () {
       const scenario = new this.scenarios[this.scenarioIndex]()
-      scenario.init()
-      scenario.setUp()
+      await scenario.init()
+      Vue.nextTick(() => {
+        scenario.setUp()
+      })
       return scenario.name
     }
   },
