@@ -4,14 +4,15 @@ const bodyParser = require('body-parser')
 const httpServer = require('http').createServer(app)
 const io = require('socket.io')(httpServer)
 const path = require('path')
-const Pool = require('pg').Pool
-const pool = new Pool({})
+const Client = require('pg').Client
+const client = new Client()
+client.connect()
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
 app.get('/relations/:relname', (req, res) => {
-  pool.query(`select * from pg_class where relname = $1`, [req.params.relname])
+  client.query(`select * from pg_class where relname = $1`, [req.params.relname])
     .then(result => {
       res.send(result.rows)
     })
@@ -23,7 +24,7 @@ app.post('/query', (req, res) => {
     res.sendStatus(500)
     return
   }
-  pool.query(req.body.query).then(result => {
+  client.query(req.body.query).then(result => {
     res.send(result)
   }).catch(err => res.status(500).send({error: err.message}))
 })
