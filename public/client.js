@@ -2,7 +2,7 @@
 /* eslint-env browser */
 const socket = io()
 const WIDTH = 640
-const SCALE = 8
+const SCALE = 16
 
 Vue.component('rel-canvas', {
   template: `
@@ -63,25 +63,21 @@ class Scenario {
       console.log(await sendQuery(q))
     })
     const promises = this.relations.map(r => register(r))
-    await Promise.all(promises).then(values => {
-      values.forEach(res => {
-        res.json().then(relations => {
-          data.relations.push({
-            relname: relations[0].relname,
-            relpages: relations[0].relpages,
-            relfilenode: relations[0].relfilenode
-          })
+    await Promise.all(promises).then(relations => {
+      relations.forEach(rel => {
+        data.relations.push({
+          relname: rel[0].relname,
+          relpages: rel[0].relpages,
+          relfilenode: rel[0].relfilenode
         })
       })
     })
   }
 
-  async sendQueryAsync (query) {
-    await sendQuery(query)
-  }
-
   setUp () {
-    this.setUpQueries.forEach(q => this.sendQueryAsync(q))
+    this.setUpQueries.forEach(async function (q) {
+      console.log(await sendQuery(q))
+    })
   }
 }
 
@@ -95,10 +91,11 @@ class Scenario1 extends Scenario {
     ]
     this.initQueries = [
       'drop table if exists t1',
-      'create table t1(i1 int primary key, i2 int)'
+      'create table t1(i1 int primary key, i2 int)',
+      'set pgstudy_usleep to 0'
     ]
     this.setUpQueries = [
-      'insert into t1(i1, i2) select i, i from generate_series(1, 1000) as s(i)'
+      'insert into t1(i1) select * from generate_series(0, 1000)'
     ]
   }
 }
@@ -130,11 +127,9 @@ const app = new Vue({
     onQuery () {
       sendQuery(this.queryText)
         .then(res => {
-          if (res.ok) {
-            this.histories.push(this.queryText)
-            this.historyIndex = this.histories.length
-            this.queryText = ''
-          }
+          this.histories.push(this.queryText)
+          this.historyIndex = this.histories.length
+          this.queryText = ''
         })
     },
     // ctrl + up
@@ -170,7 +165,15 @@ const app = new Vue({
 })
 
 function register (relname) {
-  return fetch('/relations/' + relname)
+  return new Promise((resolve, reject) => {
+    socket.emit('/relations', relname, (err, data) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(data)
+    })
+  })
 }
 
 setInterval(() => {
@@ -189,13 +192,13 @@ socket.on('message', msg => {
 })
 
 function sendQuery (query) {
-  return fetch('/query', {
-    method: 'post',
-    headers: {
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      query: query
+  return new Promise((resolve, reject) => {
+    socket.emit('/query', query, (err, data) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve()
     })
   })
 }

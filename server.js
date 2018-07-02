@@ -30,22 +30,36 @@ app.post('/query', (req, res) => {
 })
 
 function createIOServer (inputStream, io) {
-  let fragment = ''
-  inputStream.on('data', data => {
-    if (data !== null) {
-      let lines = data.toString('utf-8').split(/\n/)
-      lines[0] = fragment + lines[0]
-      fragment = lines.pop()
-      lines.forEach(function (line) {
-        if (line) {
-          try {
-            io.emit('message', JSON.parse(line))
-          } catch (ex) {
-            console.error(ex)
+  io.on('connection', socket => {
+    socket.on('/query', (query, cb) => {
+      client.query(query).then(result => {
+        cb(null, result)
+      }).catch(err => cb(err))
+    })
+    socket.on('/relations', (relname, cb) => {
+      client.query(`select * from pg_class where relname = $1`, [relname])
+        .then(result => {
+          cb(null, result.rows)
+        })
+        .catch(err => cb(err))
+    })
+    let fragment = ''
+    inputStream.on('data', data => {
+      if (data !== null) {
+        let lines = data.toString('utf-8').split(/\n/)
+        lines[0] = fragment + lines[0]
+        fragment = lines.pop()
+        lines.forEach(function (line) {
+          if (line) {
+            try {
+              socket.emit('message', JSON.parse(line))
+            } catch (ex) {
+              console.error(ex)
+            }
           }
-        }
-      })
-    }
+        })
+      }
+    })
   })
 }
 
