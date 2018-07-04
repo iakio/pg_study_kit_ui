@@ -13,20 +13,32 @@
 
 <body>
   <div id="app" class="section">
-    <div v-for="rel in relations" class="container">
-      <rel-canvas :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
+    <div class="container">
+
+      <div class="columns">
+        <div class="column">
+    
+          <div v-for="rel in relations">
+            <rel-canvas :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
+          </div>
+        </div>
+        <div class="column is-one-quarter">
+          <p v-for="(log, index) in logs">
+            {{ log }}
+          </p>
+        </div>
+      </div>
     </div>
+  
     <div class="container">
       <div class="select">
         <select v-model.number="scenarioIndex">
           <option v-for="(s, index) in scenarios" :value="index">{{ s.name }}</option>
         </select>
       </div>
-      {{ scenarioName }}
     </div>
     <div class="container">
       <h3>Query</h3>
-      <input type="range" min="0" max="5">
       <textarea @keyup.ctrl.enter="onQuery"
           @keyup.ctrl.up="onHistoryUp" 
           @keyup.ctrl.down="onHistoryDown" 

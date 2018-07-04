@@ -57,45 +57,21 @@ const data = {
   relations: []
 }
 
-class Scenario {
-  async init () {
-    this.initQueries.forEach(async function (q) {
-      console.log(await sendQuery(q))
-    })
-    const promises = this.relations.map(r => register(r))
-    await Promise.all(promises).then(relations => {
-      relations.forEach(rel => {
-        data.relations.push({
-          relname: rel[0].relname,
-          relpages: rel[0].relpages,
-          relfilenode: rel[0].relfilenode
-        })
-      })
-    })
-  }
-
-  setUp () {
-    this.setUpQueries.forEach(async function (q) {
-      console.log(await sendQuery(q))
-    })
-  }
-}
-
-class Scenario1 extends Scenario {
+class Scenario1 {
   constructor () {
-    super()
     this.name = 'Seq Scan vs Index Scan'
     this.relations = [
       't1',
       't1_pkey'
     ]
-    this.initQueries = [
+    this.beforeQueries = [
       'drop table if exists t1',
-      'create table t1(i1 int primary key, i2 int)',
-      'set pgstudy_usleep to 0'
+      'create table t1(i1 int primary key, i2 int)'
     ]
-    this.setUpQueries = [
-      'insert into t1(i1) select * from generate_series(0, 1000)'
+    this.afterQueries = [
+      'set pgstudy_usleep to 1',
+      'insert into t1(i1) select * from generate_series(0, 10000)',
+      'set pgstudy_usleep to 0'
     ]
   }
 }
@@ -105,24 +81,46 @@ const app = new Vue({
   data: {
     relations: data.relations,
     histories: [],
+    logs: [],
     historyIndex: 0,
     queryText: '',
     scenarios: [
+      Scenario1,
       Scenario1
     ],
-    scenarioIndex: 0
+    scenarioIndex: 0,
+    scenario: null
   },
-  computed: {
-    async scenarioName () {
-      const scenario = new this.scenarios[this.scenarioIndex]()
-      await scenario.init()
-      Vue.nextTick(() => {
-        scenario.setUp()
-      })
-      return scenario.name
+  watch: {
+    scenarioIndex () {
+      this.scenario = new this.scenarios[this.scenarioIndex]()
+      this.init()
     }
   },
   methods: {
+    async init () {
+      for (let i = 0; i < this.scenario.beforeQueries.length; i++) {
+        this.addLog(this.scenario.beforeQueries[i])
+        console.log(await sendQuery(this.scenario.beforeQueries[i]))
+      }
+      const promises = this.scenario.relations.map(r => register(r))
+      await Promise.all(promises).then(relations => {
+        relations.forEach(rel => {
+          this.relations.push({
+            relname: rel[0].relname,
+            relpages: rel[0].relpages,
+            relfilenode: rel[0].relfilenode
+          })
+        })
+      })
+      for (let i = 0; i < this.scenario.afterQueries.length; i++) {
+        this.addLog(this.scenario.afterQueries[i])
+        console.log(await sendQuery(this.scenario.afterQueries[i]))
+      }
+    },
+    addLog (log) {
+      this.logs.unshift(log)
+    },
     // ctrl + enter
     onQuery () {
       sendQuery(this.queryText)
@@ -198,7 +196,7 @@ function sendQuery (query) {
         reject(err)
         return
       }
-      resolve()
+      resolve(data)
     })
   })
 }
