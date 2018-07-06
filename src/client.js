@@ -2,7 +2,7 @@
 const io = require('socket.io-client/dist/socket.io')
 const Vue = require('vue/dist/vue.common')
 const socket = io()
-const WIDTH = 640
+const WIDTH = 800
 const SCALE = 16
 
 Vue.component('rel-canvas', {
@@ -66,13 +66,41 @@ class Scenario1 {
       't1_pkey'
     ]
     this.beforeQueries = [
+      'set pgstudy_usleep to 0',
       'drop table if exists t1',
       'create table t1(i1 int primary key, i2 int)'
     ]
     this.afterQueries = [
       'set pgstudy_usleep to 1',
-      'insert into t1(i1) select * from generate_series(0, 10000)',
-      'set pgstudy_usleep to 0'
+      'insert into t1(i1) select * from generate_series(0, 10000)'
+    ]
+  }
+}
+
+class Scenario2 {
+  constructor () {
+    this.name = 'Fillfactor'
+    this.relations = [
+      't1',
+      't1_pkey',
+      't2',
+      't2_pkey'
+    ]
+    this.beforeQueries = [
+      'set pgstudy_usleep to 0',
+      'drop table if exists t1',
+      'drop table if exists t2',
+      'create table t1(i1 int primary key, i2 int)',
+      'create table t2(i1 int primary key, i2 int) with (fillfactor = 50)'
+    ]
+    this.afterQueries = [
+      'set pgstudy_usleep to 1',
+      'insert into t1(i1, i2) select i, i from generate_series(0, 10000) s(i)',
+      'insert into t2(i1, i2) select i, i from generate_series(0, 10000) s(i)'
+    ]
+    this.histories = [
+      'update t1 set i2 = i2 + 1',
+      'update t2 set i2 = i2 + 1'
     ]
   }
 }
@@ -88,7 +116,7 @@ const app = new Vue({
     newRel: '',
     scenarios: [
       Scenario1,
-      Scenario1
+      Scenario2
     ],
     scenarioIndex: 0,
     scenario: null
@@ -110,6 +138,7 @@ const app = new Vue({
         this.addLog(this.scenario.afterQueries[i])
         console.log(await sendQuery(this.scenario.afterQueries[i]))
       }
+      this.histories = this.scenario.histories
     },
     register () {
       const promises = this.scenario.relations.map(r => register(r))
