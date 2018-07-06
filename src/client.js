@@ -85,6 +85,7 @@ const app = new Vue({
     logs: [],
     historyIndex: 0,
     queryText: '',
+    newRel: '',
     scenarios: [
       Scenario1,
       Scenario1
@@ -158,14 +159,14 @@ const app = new Vue({
       }
     },
     addRel () {
-      register(this.newRel).then(res => {
-        res.json().then(relations => {
-          data.relations.push({
-            relname: relations[0].relname,
-            relpages: relations[0].relpages,
-            relfilenode: relations[0].relfilenode
-          })
+      register(this.newRel).then(rel => {
+        console.log(rel)
+        this.relations.push({
+          relname: rel[0].relname,
+          relpages: rel[0].relpages,
+          relfilenode: rel[0].relfilenode
         })
+        this.newRel = ''
       })
     }
   }

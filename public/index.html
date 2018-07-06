@@ -17,7 +17,7 @@
 
       <div class="columns">
         <div class="column">
-    
+
           <div v-for="rel in relations">
             <rel-canvas :relname="rel.relname" :relfilenode="rel.relfilenode" :relpages="rel.relpages"></rel-canvas>
           </div>
@@ -29,25 +29,34 @@
         </div>
       </div>
     </div>
-  
+
     <div class="container">
-      <div class="control">
-        <div class="select">
-          <select v-model.number="scenarioIndex">
-            <option v-for="(s, index) in scenarios" :value="index">{{ s.name }}</option>
-          </select>
+      <div class="field is-grouped">
+        <div class="control">
+          <div class="select">
+            <select v-model.number="scenarioIndex">
+              <option v-for="(s, index) in scenarios" :value="index">{{ s.name }}</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <div class="control">
-        <button class="button" @click="refresh">REFRESH</button>
+        <div class="control">
+          <button class="button" @click="refresh">REFRESH</button>
+        </div>
+        <div class="control">
+          <input class="input" type="text" v-model="newRel">
+        </div>
+        <div class="control">
+          <button class="button" @click="addRel">ADD</button>
+        </div>
       </div>
     </div>
     <div class="container">
-      <h3>Query</h3>
-      <textarea @keyup.ctrl.enter="onQuery"
-          @keyup.ctrl.up="onHistoryUp" 
-          @keyup.ctrl.down="onHistoryDown" 
-          v-model="queryText" class="textarea"></textarea>
+      <div class="field">
+        <label class="label">Query</label>
+        <div class="control">
+          <textarea @keyup.ctrl.enter="onQuery" @keyup.ctrl.up="onHistoryUp" @keyup.ctrl.down="onHistoryDown" v-model="queryText" class="textarea"></textarea>
+        </div>
+      </div>
     </div>
   </div>
   <script src="client.js"></script>
