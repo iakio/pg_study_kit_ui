@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "webpack src/client.js public/client.js",
+    "watch": "webpack --watch src/client.js public/client.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {

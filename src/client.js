@@ -104,8 +104,15 @@ const app = new Vue({
         this.addLog(this.scenario.beforeQueries[i])
         console.log(await sendQuery(this.scenario.beforeQueries[i]))
       }
+      await this.register()
+      for (let i = 0; i < this.scenario.afterQueries.length; i++) {
+        this.addLog(this.scenario.afterQueries[i])
+        console.log(await sendQuery(this.scenario.afterQueries[i]))
+      }
+    },
+    register () {
       const promises = this.scenario.relations.map(r => register(r))
-      await Promise.all(promises).then(relations => {
+      return Promise.all(promises).then(relations => {
         relations.forEach(rel => {
           this.relations.push({
             relname: rel[0].relname,
@@ -114,18 +121,19 @@ const app = new Vue({
           })
         })
       })
-      for (let i = 0; i < this.scenario.afterQueries.length; i++) {
-        this.addLog(this.scenario.afterQueries[i])
-        console.log(await sendQuery(this.scenario.afterQueries[i]))
-      }
     },
     addLog (log) {
       this.logs.unshift(log)
+    },
+    refresh () {
+      this.relations = []
+      this.register()
     },
     // ctrl + enter
     onQuery () {
       sendQuery(this.queryText)
         .then(res => {
+          console.log(res)
           this.histories.push(this.queryText)
           this.historyIndex = this.histories.length
           this.queryText = ''
