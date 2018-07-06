@@ -5,9 +5,11 @@
     "express": "^4.14.1",
     "io": "^0.1.10",
     "pg": "^6.1.2",
-    "socket.io": "^1.7.3"
+    "socket.io": "^1.7.3",
+    "vue": "^2.5.16"
   },
   "scripts": {
+    "build": "webpack src/client.js public/client.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
-/* global Vue, io */
 /* eslint-env browser */
+const io = require('socket.io-client/dist/socket.io')
+const Vue = require('vue/dist/vue.common')
 const socket = io()
 const WIDTH = 640
 const SCALE = 16
