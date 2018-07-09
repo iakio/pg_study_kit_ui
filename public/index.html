@@ -40,13 +40,16 @@
           </div>
         </div>
         <div class="control">
-          <button class="button" @click="refresh">REFRESH</button>
+          <button class="button" @click="run">Run</button>
+        </div>
+        <div class="control">
+          <button class="button" @click="refresh">Refresh</button>
         </div>
         <div class="control">
           <input class="input" type="text" v-model="newRel">
         </div>
         <div class="control">
-          <button class="button" @click="addRel">ADD</button>
+          <button class="button" @click="addRel">Add</button>
         </div>
       </div>
     </div>
@@ -54,7 +57,7 @@
       <div class="field">
         <label class="label">Query</label>
         <div class="control">
-          <textarea @keyup.ctrl.enter="onQuery" @keyup.ctrl.up="onHistoryUp" @keyup.ctrl.down="onHistoryDown" v-model="queryText" class="textarea"></textarea>
+          <textarea style="font-size: x-large" @keyup.ctrl.enter="onQuery" @keyup.ctrl.up="onHistoryUp" @keyup.ctrl.down="onHistoryDown" v-model="queryText" class="textarea"></textarea>
         </div>
       </div>
     </div>

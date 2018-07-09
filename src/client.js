@@ -72,12 +72,47 @@ class Scenario1 {
     ]
     this.afterQueries = [
       'set pgstudy_usleep to 1',
-      'insert into t1(i1) select * from generate_series(0, 10000)'
+      'insert into t1(i1, i2) select i, i from generate_series(0, 10000) s(i)'
+    ]
+    this.histories = [
+      'select * from t1 where i1 = 1000',
+      'select * from t1 where i2 = 1000',
+      'delete from t1',
+      'insert into t1 values(1, 1)',
+      'vacuum t1'
     ]
   }
 }
 
 class Scenario2 {
+  constructor () {
+    this.name = 'BitmapIndexScan'
+    this.relations = [
+      't1',
+      't1_pkey',
+      't1_i2_r_idx'
+    ]
+    this.beforeQueries = [
+      'set pgstudy_usleep to 0',
+      'drop table if exists t1',
+      'create table t1(i1 int primary key, i2 int, r int)',
+      'create index on t1(i2, r)'
+    ]
+    this.afterQueries = [
+      'set pgstudy_usleep to 1',
+      'insert into t1(i1, i2, r) select i, i % 5, random() * 100 from generate_series(0, 10000) s(i)'
+    ]
+    this.histories = [
+      'select * from t1 where i1 = 1000',
+      'select * from t1 where i2 = 1',
+      'analyze',
+      'set enable_bitmapscan to off',
+      'set enable_seqscan to off'
+    ]
+  }
+}
+
+class Scenario3 {
   constructor () {
     this.name = 'Fillfactor'
     this.relations = [
@@ -116,16 +151,12 @@ const app = new Vue({
     newRel: '',
     scenarios: [
       Scenario1,
-      Scenario2
+      Scenario2,
+      Scenario3
     ],
     scenarioIndex: 0,
-    scenario: null
-  },
-  watch: {
-    scenarioIndex () {
-      this.scenario = new this.scenarios[this.scenarioIndex]()
-      this.init()
-    }
+    scenario: null,
+    rendering: true
   },
   methods: {
     async init () {
@@ -141,6 +172,8 @@ const app = new Vue({
       this.histories = this.scenario.histories
     },
     register () {
+      this.logs = []
+      this.relations = []
       const promises = this.scenario.relations.map(r => register(r))
       return Promise.all(promises).then(relations => {
         relations.forEach(rel => {
@@ -155,8 +188,11 @@ const app = new Vue({
     addLog (log) {
       this.logs.unshift(log)
     },
+    run () {
+      this.scenario = new this.scenarios[this.scenarioIndex]()
+      this.init()
+    },
     refresh () {
-      this.relations = []
       this.register()
     },
     // ctrl + enter
@@ -165,7 +201,7 @@ const app = new Vue({
         .then(res => {
           console.log(res)
           this.histories.push(this.queryText)
-          this.historyIndex = this.histories.length
+          this.historyIndex = this.histories.length - 1
           this.queryText = ''
         })
     },
