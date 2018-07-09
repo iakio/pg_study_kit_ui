@@ -160,16 +160,20 @@ const app = new Vue({
   },
   methods: {
     async init () {
-      for (let i = 0; i < this.scenario.beforeQueries.length; i++) {
-        this.addLog(this.scenario.beforeQueries[i])
-        console.log(await sendQuery(this.scenario.beforeQueries[i]))
+      try {
+        for (let i = 0; i < this.scenario.beforeQueries.length; i++) {
+          this.addLog(this.scenario.beforeQueries[i])
+          console.log(await sendQuery(this.scenario.beforeQueries[i]))
+        }
+        await this.register()
+        for (let i = 0; i < this.scenario.afterQueries.length; i++) {
+          this.addLog(this.scenario.afterQueries[i])
+          console.log(await sendQuery(this.scenario.afterQueries[i]))
+        }
+        this.histories = this.scenario.histories
+      } catch (e) {
+        this.addLog(e.message)
       }
-      await this.register()
-      for (let i = 0; i < this.scenario.afterQueries.length; i++) {
-        this.addLog(this.scenario.afterQueries[i])
-        console.log(await sendQuery(this.scenario.afterQueries[i]))
-      }
-      this.histories = this.scenario.histories
     },
     register () {
       this.logs = []
@@ -203,6 +207,9 @@ const app = new Vue({
           this.histories.push(this.queryText)
           this.historyIndex = this.histories.length - 1
           this.queryText = ''
+        })
+        .catch(e => {
+          this.addLog(e.message)
         })
     },
     // ctrl + up

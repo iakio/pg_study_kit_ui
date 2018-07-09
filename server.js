@@ -29,6 +29,10 @@ app.post('/query', (req, res) => {
   }).catch(err => res.status(500).send({error: err.message}))
 })
 
+function errorMessage (e) {
+  return Object.assign({}, e, {message: e.message})
+}
+
 function createIOServer (inputStream, io) {
   let fragment = ''
   inputStream.on('data', data => {
@@ -51,14 +55,14 @@ function createIOServer (inputStream, io) {
     socket.on('/query', (query, cb) => {
       client.query(query).then(result => {
         cb(null, result)
-      }).catch(err => cb(err))
+      }).catch(err => cb(errorMessage(err)))
     })
     socket.on('/relations', (relname, cb) => {
       client.query(`select * from pg_class where relname = $1`, [relname])
         .then(result => {
           cb(null, result.rows)
         })
-        .catch(err => cb(err))
+        .catch(err => cb(errorMessage(err)))
     })
   })
 }
