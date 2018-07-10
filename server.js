@@ -40,17 +40,14 @@ function createIOServer (inputStream, io) {
       let lines = data.toString('utf-8').split(/\n/)
       lines[0] = fragment + lines[0]
       fragment = lines.pop()
-      lines.forEach(function (line) {
-        if (line) {
-          try {
-            io.emit('message', JSON.parse(line))
-          } catch (ex) {
-            console.error(ex)
-          }
-        }
-      })
+      try {
+        io.emit('message', lines.map(l => JSON.parse(l)))
+      } catch (ex) {
+        console.error(ex)
+      }
     }
   })
+
   io.on('connection', socket => {
     socket.on('/query', (query, cb) => {
       client.query(query).then(result => {

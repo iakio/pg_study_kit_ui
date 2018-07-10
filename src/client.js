@@ -265,9 +265,11 @@ setInterval(() => {
 }, 100)
 
 socket.on('message', msg => {
-  var [rel, blockNo, hit] = msg
-  app.$children.forEach(el => {
-    el.point(rel, blockNo, hit)
+  msg.forEach(line => {
+    const [rel, blockNo, hit] = line
+    app.$children.forEach(el => {
+      el.point(rel, blockNo, hit)
+    })
   })
 })
 
