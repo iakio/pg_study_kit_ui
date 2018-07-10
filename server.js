@@ -11,23 +11,6 @@ client.connect()
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
-app.get('/relations/:relname', (req, res) => {
-  client.query(`select * from pg_class where relname = $1`, [req.params.relname])
-    .then(result => {
-      res.send(result.rows)
-    })
-    .catch(err => res.status(500).send({error: err.message}))
-})
-
-app.post('/query', (req, res) => {
-  if (!req.body.query) {
-    res.sendStatus(500)
-    return
-  }
-  client.query(req.body.query).then(result => {
-    res.send(result)
-  }).catch(err => res.status(500).send({error: err.message}))
-})
 
 function errorMessage (e) {
   return Object.assign({}, e, {message: e.message})
